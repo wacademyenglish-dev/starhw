@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WOLFLIX: Padawan Assessment</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        jedi: {
+                            bg: '#000c14',
+                            panel: '#001a2c',
+                            cyan: '#00e5ff',
+                            blue: '#0055ff',
+                            text: '#e0f7fa',
+                            muted: '#80deea'
+                        },
+                        sith: {
+                            red: '#ff0000',
+                            bg: '#1a0000'
+                        }
+                    },
+                    fontFamily: {
+                        head: ['Orbitron', 'sans-serif'],
+                        sub: ['Rajdhani', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #000c14;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Rajdhani', sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            background-image: 
+                linear-gradient(rgba(0, 229, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Holocron Container Simulation */
+        #mobile-container {
+            width: 100%;
+            max-width: 450px;
+            height: 100dvh;
+            max-height: 900px;
+            background-color: #001a2c;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 50px rgba(0, 229, 255, 0.2);
+        }
+
+        @media (min-width: 480px) {
+            #mobile-container {
+                height: 90vh;
+                border-radius: 1rem;
+                border: 2px solid #0055ff;
+            }
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Screen Transitions */
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            background-color: #001a2c;
+            transform: translateX(100%);
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 10;
+        }
+        .screen.active { transform: translateX(0); z-index: 20; }
+        .screen.previous { transform: translateX(-100%); z-index: 10; }
+
+        /* Option Buttons (Hologram Style) */
+        .option-btn {
+            background-color: rgba(0, 0, 0, 0.4);
+            border: 1px solid #0055ff;
+            color: #e0f7fa;
+            font-family: 'Rajdhani', sans-serif;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+            padding: 1.25rem;
+            border-radius: 0.25rem;
+            width: 100%;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .option-btn:hover {
+            border-color: #00e5ff;
+            background-color: rgba(0, 229, 255, 0.05);
+        }
+        .option-btn.selected {
+            border-color: #00e5ff;
+            background-color: rgba(0, 229, 255, 0.15);
+            box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.3);
+        }
+        .option-btn.correct { 
+            border-color: #00e5ff; 
+            color: #00e5ff; 
+            background-color: rgba(0, 229, 255, 0.2); 
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+        }
+        .option-btn.wrong { 
+            border-color: #ff0000; 
+            color: #ffcdd2; 
+            background-color: rgba(255, 0, 0, 0.2); 
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+        }
+
+        /* Holo Button */
+        .holo-btn {
+            background: transparent;
+            color: #00e5ff;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            width: 100%;
+            padding: 1.25rem;
+            border-radius: 0;
+            border: 1px solid #00e5ff;
+            box-shadow: inset 0 0 10px rgba(0, 229, 255, 0.2);
+        }
+        .holo-btn:hover:not(:disabled) {
+            background: #00e5ff;
+            color: #000c14;
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+        }
+        .holo-btn:disabled {
+            border-color: #0055ff;
+            color: #0055ff;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- DEVICE CONTAINER -->
+    <div id="mobile-container">
+
+        <!-- STATUS BAR -->
+        <div class="h-8 bg-black text-jedi-cyan flex justify-between items-center px-4 text-[10px] font-head z-50 shrink-0 border-b border-jedi-blue/50">
+            <span>ARCHIVE CONNECTION: STABLE</span>
+            <div class="flex gap-2 items-center">
+                <span>JEDI NET</span>
+                <span class="animate-pulse">🪐</span>
+            </div>
+        </div>
+
+        <!-- SCREEN 1: LOGIN -->
+        <div id="screen-login" class="screen active flex items-center justify-center p-8 text-center bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
+            <div class="z-10 w-full flex flex-col items-center bg-black/60 p-8 rounded-lg shadow-[0_0_30px_rgba(0,0,0,0.8)] border border-jedi-blue backdrop-blur-md">
+                
+                <span class="text-6xl mb-6 text-jedi-cyan drop-shadow-[0_0_15px_var(--accent)]">🌌</span>
+                
+                <h2 class="font-head text-xs tracking-[0.2em] text-jedi-muted mb-2 uppercase">Jedi Temple Archives</h2>
+                <h1 class="font-head text-3xl font-black tracking-widest mb-6 text-white uppercase drop-shadow-[0_0_10px_#00e5ff]">PADAWAN<br>TRIALS</h1>
+                <p class="font-sub text-lg text-jedi-muted mb-10 leading-relaxed italic border-l-2 border-jedi-cyan pl-4 text-left">
+                    "Assess your knowledge of the Force, historical events, and the grammar required to pass the trials."
+                </p>
+
+                <button onclick="startQuiz()" class="holo-btn text-lg">
+                    ACCESS TRIALS
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: QUIZ -->
+        <div id="screen-quiz" class="screen flex flex-col">
+            <!-- Header -->
+            <header class="bg-black/90 border-b border-jedi-blue p-4 shrink-0 flex items-center justify-between shadow-md z-20">
+                <div class="flex items-center gap-3">
+                    <span class="text-jedi-cyan text-lg drop-shadow-[0_0_5px_#00e5ff]">⚔️</span>
+                    <span class="font-head font-bold uppercase tracking-widest text-[10px] text-jedi-muted" id="q-category">Lore</span>
+                </div>
+                <span class="font-head font-black text-xs text-black bg-jedi-cyan px-3 py-1" id="q-counter">1/15</span>
+            </header>
+
+            <!-- Progress Bar -->
+            <div class="w-full h-1 bg-black shrink-0">
+                <div id="progress-bar" class="h-full bg-jedi-cyan shadow-[0_0_10px_#00e5ff] transition-all duration-500" style="width: 0%;"></div>
+            </div>
+
+            <!-- Scrollable Content Area -->
+            <div class="flex-1 overflow-y-auto no-scrollbar p-6 flex flex-col relative bg-gradient-to-b from-[#000c14] to-[#001a2c]">
+                
+                <!-- Question Text -->
+                <div class="bg-black/40 p-6 rounded shadow-inner border border-jedi-blue/30 mb-8 border-l-4 border-l-jedi-cyan">
+                    <h2 id="q-text" class="text-xl font-bold text-white leading-relaxed font-sub">
+                        Question goes here?
+                    </h2>
+                </div>
+
+                <!-- Options Grid -->
+                <div id="options-container" class="flex flex-col gap-4 mb-8">
+                    <!-- Options injected via JS -->
+                </div>
+
+                <!-- Spacer -->
+                <div class="flex-1"></div>
+
+                <!-- Feedback Area -->
+                <div id="feedback-area" class="hidden mb-6 p-4 font-sub text-lg font-bold rounded shadow-sm">
+                    Feedback goes here
+                </div>
+
+            </div>
+
+            <!-- Bottom Action Bar -->
+            <div class="p-4 bg-black/90 border-t border-jedi-blue shrink-0">
+                <button id="btn-next" onclick="handleNext()" disabled class="holo-btn text-base py-4">
+                    CONFIRM SELECTION
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: RESULTS -->
+        <div id="screen-results" class="screen flex flex-col relative overflow-hidden bg-gradient-to-b from-[#000c14] to-[#001a2c]">
+            <header class="bg-black/80 p-4 shrink-0 text-center border-b border-jedi-blue z-10">
+                <span class="font-head font-bold uppercase tracking-widest text-xs text-jedi-muted">TRIALS COMPLETE</span>
+            </header>
+
+            <div class="flex-1 flex flex-col items-center justify-center p-8 text-center z-10 relative">
+                
+                <div id="result-icon" class="text-7xl mb-6 relative z-10 drop-shadow-[0_0_20px_#00e5ff]">🧙‍♂️</div>
+                <h1 id="result-title" class="text-3xl font-head font-black text-jedi-cyan uppercase tracking-widest mb-2 relative z-10">Title</h1>
+                <p id="result-subtitle" class="text-sm font-head font-bold text-jedi-muted mb-8 uppercase tracking-widest relative z-10">
+                    Wisdom Score: <span id="final-score" class="text-white text-lg">15</span> / 15
+                </p>
+                
+                <div class="w-full bg-black/50 p-6 border border-jedi-blue shadow-[0_0_15px_rgba(0,0,0,0.5)] mb-10 rounded relative z-10 border-t-2 border-t-jedi-cyan">
+                    <p id="result-msg" class="font-sub text-xl text-white leading-relaxed italic">
+                        "Message goes here."
+                    </p>
+                </div>
+
+                <button onclick="restartApp()" class="w-full holo-btn text-sm py-4 relative z-10">
+                    REBOOT HOLOCRON
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- 1. Questions Database (15 exercises based on B1 Star Wars Class) ---
+        const questions = [
+            // CATEGORY 1: RELATIVE CLAUSES
+            {
+                category: "Grammar: Relative Clauses",
+                question: "Choose the correct relative pronoun: 'A Jedi is a person ________ uses the Force for good.'",
+                options: ["which", "who", "where", "whose"],
+                correctIndex: 1,
+                explanation: "We use 'who' to give more information about a person."
+            },
+            {
+                category: "Grammar: Relative Clauses",
+                question: "Choose the correct relative pronoun: 'The Force is an energy field ________ binds the galaxy together.'",
+                options: ["who", "where", "which", "when"],
+                correctIndex: 2,
+                explanation: "We use 'which' (or 'that') to refer to things or concepts."
+            },
+            {
+                category: "Grammar: Relative Clauses",
+                question: "Choose the correct relative pronoun: 'Tatooine is the desert planet ________ Luke grew up.'",
+                options: ["where", "which", "who", "that"],
+                correctIndex: 0,
+                explanation: "We use 'where' to refer to a place."
+            },
+            {
+                category: "Grammar: Relative Clauses",
+                question: "Find the MISTAKE in the sentence: 'Darth Vader is the man which betrayed the Jedi.'",
+                options: [
+                    "The sentence is correct.",
+                    "It should be 'Darth Vader is the man WHO betrayed the Jedi.'",
+                    "It should be 'Darth Vader is the man WHERE betrayed the Jedi.'"
+                ],
+                correctIndex: 1,
+                explanation: "Darth Vader is a person, so we must use 'who' (or 'that'), never 'which'."
+            },
+            // CATEGORY 2: PAST CONTINUOUS VS PAST SIMPLE
+            {
+                category: "Grammar: Narrative Tenses",
+                question: "Complete the sentence: 'While Obi-Wan ________ on Tatooine, he ________ over young Luke.'",
+                options: [
+                    "hid / was watching", 
+                    "was hiding / watched", 
+                    "was hiding / was watching"
+                ],
+                correctIndex: 1,
+                explanation: "'Was hiding' sets the background action (Past Continuous), 'watched' is the main action."
+            },
+            {
+                category: "Grammar: Narrative Tenses",
+                question: "Complete the sentence: 'The galaxy ________ in peace when the Empire suddenly ________ control.'",
+                options: [
+                    "was living / took", 
+                    "lived / was taking", 
+                    "lived / took"
+                ],
+                correctIndex: 0,
+                explanation: "The ongoing action (was living) was interrupted by a sudden event (took control)."
+            },
+            {
+                category: "Grammar: Narrative Tenses",
+                question: "Which sentence correctly describes an interrupting action in the past?",
+                options: [
+                    "Luke was cleaning the droids when he found a hidden message.",
+                    "Luke cleaned the droids when he was finding a hidden message.",
+                    "Luke was cleaning the droids while he was finding a message."
+                ],
+                correctIndex: 0,
+                explanation: "[Past Continuous] WHEN [Past Simple]."
+            },
+            {
+                category: "Grammar: Narrative Tenses",
+                question: "Choose the right option: 'I ________ a Jedi Master before the dark times.'",
+                options: ["was being", "was", "were"],
+                correctIndex: 1,
+                explanation: "For states of being in the past, we simply use the Past Simple 'was'."
+            },
+            // CATEGORY 3: LORE & LEXICON
+            {
+                category: "Jedi Archives Lexicon",
+                question: "What is a 'Pupil'?",
+                options: [
+                    "A dangerous weapon.",
+                    "A student learning from a master.",
+                    "A high-ranking general."
+                ],
+                correctIndex: 1,
+                explanation: "Darth Vader was Obi-Wan's pupil (apprentice or student) before turning evil."
+            },
+            {
+                category: "Jedi Archives Lexicon",
+                question: "What does it mean to be 'Seduced' by the Dark Side?",
+                options: [
+                    "To be forced against your will.",
+                    "To be persuaded to do something bad by promises of power.",
+                    "To accidentally fall into it."
+                ],
+                correctIndex: 1,
+                explanation: "The Dark Side tempts people with quick, easy power. It seduces them."
+            },
+            {
+                category: "Jedi Archives Lexicon",
+                question: "Which of the following is an act of 'Betrayal'?",
+                options: [
+                    "Helping your friends win a battle.",
+                    "Handing your allies over to the enemy.",
+                    "Training hard to become stronger."
+                ],
+                correctIndex: 1,
+                explanation: "Betrayal means breaking trust and turning against your own side."
+            },
+            {
+                category: "Jedi Archives Lexicon",
+                question: "How does Obi-Wan describe the Lightsaber?",
+                options: [
+                    "A clumsy and random weapon like a blaster.",
+                    "An elegant weapon for a more civilized age.",
+                    "A heavy sword only for strong warriors."
+                ],
+                correctIndex: 1,
+                explanation: "He respects the lightsaber as a symbol of peace and civilization, unlike guns."
+            },
+            // CATEGORY 4: CONTEXT & PHILOSOPHY
+            {
+                category: "Philosophical Analysis",
+                question: "Why did Obi-Wan lie to Luke about how his father died?",
+                options: [
+                    "Because he wanted to steal Luke's inheritance.",
+                    "Because he believed that the 'good man' Anakin was destroyed by the Dark Side.",
+                    "Because he didn't remember what happened."
+                ],
+                correctIndex: 1,
+                explanation: "Obi-Wan justifies the lie by saying it was true 'from a certain point of view'."
+            },
+            {
+                category: "Philosophical Analysis",
+                question: "According to the lesson, how does corruption usually happen?",
+                options: [
+                    "It's a sudden, random event.",
+                    "It's a slow process of making small bad choices over time.",
+                    "It only happens to people who are born evil."
+                ],
+                correctIndex: 1,
+                explanation: "Anakin wasn't born evil; he was slowly seduced by making compromises for power."
+            },
+            {
+                category: "Lore Knowledge",
+                question: "The Dark Side of the Force feeds on which emotions?",
+                options: [
+                    "Love, peace, and patience.",
+                    "Logic, strategy, and mathematics.",
+                    "Anger, fear, and aggression."
+                ],
+                correctIndex: 2,
+                explanation: "The Jedi control their emotions; the Sith use fear and anger to gain quick power."
+            }
+        ];
+
+        // --- 2. App State & Logic ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let hasAnswered = false;
+        let selectedIdx = null;
+
+        function startQuiz() {
+            currentQuestionIndex = 0; score = 0;
+            switchScreen('screen-login', 'screen-quiz');
+            loadQuestion();
+        }
+
+        function switchScreen(oldId, newId) {
+            const oldScreen = document.getElementById(oldId);
+            const newScreen = document.getElementById(newId);
+            if(oldScreen) oldScreen.classList.replace('active', 'previous');
+            if(newScreen) {
+                newScreen.classList.remove('previous');
+                newScreen.classList.add('active');
+            }
+        }
+
+        function loadQuestion() {
+            hasAnswered = false;
+            selectedIdx = null;
+            const q = questions[currentQuestionIndex];
+            
+            const counter = document.getElementById('q-counter');
+            const category = document.getElementById('q-category');
+            const qText = document.getElementById('q-text');
+            const progressBar = document.getElementById('progress-bar');
+            
+            if(counter) counter.innerText = `${currentQuestionIndex + 1}/15`;
+            if(category) category.innerText = q.category;
+            if(qText) qText.innerText = q.question;
+            if(progressBar) progressBar.style.width = `${(currentQuestionIndex / 15) * 100}%`;
+            
+            const container = document.getElementById('options-container');
+            if(container) {
+                container.innerHTML = '';
+                q.options.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerText = opt;
+                    btn.onclick = () => selectOption(idx, btn);
+                    container.appendChild(btn);
+                });
+            }
+
+            const nextBtn = document.getElementById('btn-next');
+            if(nextBtn) {
+                nextBtn.disabled = true;
+                nextBtn.innerText = "CONFIRM SELECTION";
+            }
+            const fb = document.getElementById('feedback-area');
+            if(fb) fb.classList.add('hidden');
+        }
+
+        function selectOption(idx, btn) {
+            if(hasAnswered) return;
+            selectedIdx = idx;
+            document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            const nextBtn = document.getElementById('btn-next');
+            if(nextBtn) nextBtn.disabled = false;
+        }
+
+        function handleNext() {
+            if(!hasAnswered) {
+                checkAnswer();
+            } else {
+                currentQuestionIndex++;
+                if(currentQuestionIndex < 15) loadQuestion();
+                else finishQuiz();
+            }
+        }
+
+        function checkAnswer() {
+            hasAnswered = true;
+            const q = questions[currentQuestionIndex];
+            const btns = document.querySelectorAll('.option-btn');
+            const fb = document.getElementById('feedback-area');
+            const nextBtn = document.getElementById('btn-next');
+
+            if(selectedIdx === q.correctIndex) {
+                score++;
+                if(btns[selectedIdx]) btns[selectedIdx].classList.add('correct');
+                if(fb) {
+                    fb.classList.remove('hidden');
+                    fb.className = "mb-6 p-4 font-head text-sm border border-jedi-cyan text-jedi-cyan bg-jedi-cyan/10 rounded shadow-sm tracking-widest";
+                    fb.innerHTML = "<strong>> WISDOM:</strong> " + q.explanation;
+                }
+            } else {
+                if(btns[selectedIdx]) btns[selectedIdx].classList.add('wrong');
+                if(btns[q.correctIndex]) btns[q.correctIndex].classList.add('correct');
+                if(fb) {
+                    fb.classList.remove('hidden');
+                    fb.className = "mb-6 p-4 font-head text-sm border border-sith-red text-sith-red bg-sith-red/10 rounded shadow-sm tracking-widest";
+                    fb.innerHTML = "<strong>> ERROR:</strong> " + q.explanation;
+                }
+            }
+            if(nextBtn) nextBtn.innerText = currentQuestionIndex === 14 ? "ACCESS RESULTS" : "NEXT QUESTION";
+        }
+
+        function finishQuiz() {
+            switchScreen('screen-quiz', 'screen-results');
+            const scoreEl = document.getElementById('final-score');
+            const titleEl = document.getElementById('result-title');
+            const iconEl = document.getElementById('result-icon');
+            const msgEl = document.getElementById('result-msg');
+            
+            if(scoreEl) scoreEl.innerText = score;
+            if(titleEl) {
+                if(score >= 13) {
+                    titleEl.innerText = "Jedi Master";
+                    titleEl.className = "text-3xl font-head font-black text-jedi-cyan uppercase tracking-widest mb-2 relative z-10 drop-shadow-[0_0_10px_#00e5ff]";
+                    iconEl.innerText = "🧙‍♂️";
+                    msgEl.innerHTML = "The Force is strong with you. Your knowledge of relative clauses and the history of the Republic is absolute. The Council is proud.";
+                }
+                else if(score >= 8) {
+                    titleEl.innerText = "Padawan Learner";
+                    titleEl.className = "text-3xl font-head font-black text-blue-400 uppercase tracking-widest mb-2 relative z-10 drop-shadow-[0_0_10px_#0055ff]";
+                    iconEl.innerText = "⚔️";
+                    msgEl.innerHTML = "You have much to learn, young one. Review your narrative tenses and study the archives before facing the trials again.";
+                }
+                else {
+                    titleEl.innerText = "Seduced by the Dark Side";
+                    titleEl.className = "text-3xl font-head font-black text-sith-red uppercase tracking-widest mb-2 relative z-10 drop-shadow-[0_0_15px_#ff0000]";
+                    iconEl.innerText = "💀";
+                    msgEl.innerHTML = "Fear leads to anger, anger leads to hate. Your lack of focus has clouded your grammar and your mind. Reboot the Holocron immediately.";
+                }
+            }
+        }
+
+        function restartApp() { switchScreen('screen-results', 'screen-login'); }
+
+    </script>
+</body>
+</html>
